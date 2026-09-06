@@ -1,0 +1,50 @@
+{
+  "name": "incident-commander",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "dev": "vite dev",
+    "start": "vite dev",
+    "build": "vite build",
+    "deploy": "vite build && wrangler deploy",
+    "types": "wrangler types worker-configuration.d.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "@cloudflare/ai-chat": "^0.9.3",
+    "@tabler/icons-react": "^3.35.0",
+    "agents": "^0.17.4",
+    "ai": "^6.0.197",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwind-merge": "^2.6.0",
+    "workers-ai-provider": "^3.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.46.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.0",
+    "wrangler": "^4.113.0"
+  }
+}
