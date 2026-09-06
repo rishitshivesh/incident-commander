@@ -1,29 +1,24 @@
 export type IncidentSeverity = "low" | "medium" | "high" | "critical";
+export type IncidentStatus = "open" | "investigating" | "resolved";
+export type InvestigationStep = "queued" | "triage" | "deployments" | "dependencies" | "logs" | "hypothesis" | "complete" | "error";
 export type InvestigationStatus = "idle" | "queued" | "running" | "complete" | "error";
 
-export type IncidentSummary = {
+export type ActiveIncident = {
   id: string;
   title: string;
   service: string;
   environment: string;
   severity: IncidentSeverity;
-  status: "open" | "investigating" | "resolved";
+  status: IncidentStatus;
   createdAt: string;
 };
 
-export type WorkflowProgress = {
-  step: string;
-  status: InvestigationStatus;
-  percent: number;
-  message: string;
-};
-
 export type CommanderState = {
-  activeIncident: IncidentSummary | null;
+  activeIncident: ActiveIncident | null;
   investigation: {
     workflowId: string | null;
     status: InvestigationStatus;
-    step: string | null;
+    step: InvestigationStep | null;
     percent: number;
     message: string | null;
   };
@@ -34,6 +29,13 @@ export type InvestigationParams = {
   service: string;
   environment: string;
   description: string;
+};
+
+export type WorkflowProgress = {
+  step: InvestigationStep;
+  status: "pending" | "running" | "complete" | "error";
+  percent: number;
+  message: string;
 };
 
 export type InvestigationResult = {

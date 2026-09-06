@@ -8,57 +8,26 @@ export class IncidentInvestigationWorkflow extends AgentWorkflow<IncidentCommand
   async run(event: AgentWorkflowEvent<InvestigationParams>, step: AgentWorkflowStep) {
     const { incidentId, service } = event.payload;
 
-    await this.reportProgress({
-      step: "triage",
-      status: "running",
-      percent: 10,
-      message: "Classifying incident and collecting service context"
-    });
+    await this.reportProgress({ step: "triage", status: "running", percent: 0.1, message: "Classifying incident and collecting service context" });
+    const serviceSnapshot = await step.do("triage-service", async () => getServiceSnapshot(service));
 
-    const serviceSnapshot = await step.do("triage service", async () => getServiceSnapshot(service));
+    await this.reportProgress({ step: "deployments", status: "running", percent: 0.3, message: "Checking recent deployments" });
+    const recentDeployments = await step.do("check-deployments", async () => getRecentDeployments(service));
 
-    await this.reportProgress({
-      step: "deployments",
-      status: "running",
-      percent: 30,
-      message: "Checking recent deployments"
-    });
+    await this.reportProgress({ step: "dependencies", status: "running", percent: 0.5, message: "Inspecting dependency health" });
+    const serviceDependencies = await step.do("inspect-dependencies", async () => getDependencies(service));
 
-    const deployments = await step.do("check deployments", async () => getRecentDeployments(service));
+    await this.reportProgress({ step: "logs", status: "running", percent: 0.7, message: "Correlating application and dependency logs" });
+    const serviceLogs = await step.do("search-service-logs", async () => searchServiceLogs(service));
+    const redisLogs = await step.do("search-redis-logs", async () => searchServiceLogs("redis"));
 
-    await this.reportProgress({
-      step: "dependencies",
-      status: "running",
-      percent: 50,
-      message: "Inspecting dependency health"
-    });
-
-    const dependencies = await step.do("inspect dependencies", async () => getDependencies(service));
-
-    await this.reportProgress({
-      step: "logs",
-      status: "running",
-      percent: 70,
-      message: "Correlating application and dependency logs"
-    });
-
-    const serviceLogs = await step.do("search service logs", async () => searchServiceLogs(service));
-    const redisLogs = await step.do("search redis logs", async () => searchServiceLogs("redis"));
-
-    await this.reportProgress({
-      step: "hypothesis",
-      status: "running",
-      percent: 90,
-      message: "Ranking the strongest root-cause hypothesis"
-    });
-
-    const result = await step.do("build investigation result", async (): Promise<InvestigationResult> => {
-      const redis = dependencies.find((dependency) => dependency.name === "redis");
-      const latestDeployment = deployments[0];
-      const redisPressure = redis?.status === "critical";
+    await this.reportProgress({ step: "hypothesis", status: "running", percent: 0.9, message: "Ranking the strongest root-cause hypothesis" });
+    const result = await step.do("build-investigation-result", async (): Promise<InvestigationResult> => {
+      const redis = serviceDependencies.find((dependency) => dependency.name === "redis");
+      const latestDeployment = recentDeployments[0];
       const hasRedisTimeouts = [...serviceLogs, ...redisLogs].some((line) => line.includes("RedisTimeoutException") || line.includes("pool utilization"));
 
-      if (redisPressure && hasRedisTimeouts && latestDeployment) {
+      if (redis?.status === "critical" && hasRedisTimeouts && latestDeployment) {
         return {
           incidentId,
           likelyCause: `Redis connection pool exhaustion introduced around deployment ${latestDeployment.version}`,
@@ -77,10 +46,11 @@ export class IncidentInvestigationWorkflow extends AgentWorkflow<IncidentCommand
         likelyCause: "No single root cause reached the confidence threshold",
         confidence: 0.42,
         evidence: serviceSnapshot ? [`${service} is currently ${serviceSnapshot.status}`] : ["Service telemetry was unavailable"],
-        recommendation: "Continue investigation with real provider telemetry and compare against the last known healthy deployment."
+        recommendation: "Continue with provider telemetry and compare against the last known healthy deployment."
       };
     });
 
+    await this.reportProgress({ step: "complete", status: "complete", percent: 1, message: result.likelyCause });
     await step.reportComplete(result);
     return result;
   }

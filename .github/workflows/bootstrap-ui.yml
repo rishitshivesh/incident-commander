@@ -1,0 +1,32 @@
+name: Bootstrap UI
+
+on:
+  push:
+    branches:
+      - rebuild-next
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rebuild-next
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: yarn install
+      - run: yarn dlx shadcn@latest add button badge card progress --yes
+      - run: yarn dlx shadcn@latest add https://agent-elements.21st.dev/r/agent-chat.json --yes
+      - run: yarn prettier --write .
+      - run: |
+          git config user.name "Rishit Shivesh"
+          git config user.email "55372921+rishitshivesh@users.noreply.github.com"
+          git add .
+          git commit -m "Install UI components" || exit 0
+          git push origin HEAD:rebuild-next

@@ -1,0 +1,35 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "incident-commander-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": {
+    "binding": "AI",
+    "remote": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "IncidentCommanderAgent",
+        "class_name": "IncidentCommanderAgent"
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "name": "incident-investigation",
+      "binding": "INCIDENT_INVESTIGATION",
+      "class_name": "IncidentInvestigationWorkflow"
+    }
+  ],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["IncidentCommanderAgent"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

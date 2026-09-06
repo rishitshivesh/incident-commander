@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "agent-elements": {
+      "command": "npx",
+      "args": ["-y", "shadcn@canary", "mcp"],
+      "env": {
+        "REGISTRY_URL": "https://agent-elements.21st.dev/r/index.json"
+      }
+    }
+  }
+}

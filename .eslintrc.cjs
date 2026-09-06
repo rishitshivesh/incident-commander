@@ -1,8 +1,6 @@
 module.exports = {
   env: {
-    es6: true,
-    browser: true,
-    worker: true
+    es6: true
   },
   globals: {
     JSX: "readonly",
@@ -28,5 +26,6 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": ["error", { args: "none" }],
     "@typescript-eslint/no-explicit-any": "warn",
     "valid-typeof": "off"
-  }
+  },
+  ignorePatterns: [".next/", ".open-next/", ".worker-dist/", "worker/env.generated.d.ts"]
 };
