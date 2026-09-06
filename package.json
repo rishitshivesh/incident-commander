@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "yarn@4.18.0",
   "scripts": {
     "dev": "vite dev",
     "start": "vite dev",
