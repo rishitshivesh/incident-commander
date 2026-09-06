@@ -1,4 +1,7 @@
 node_modules
-dist
+.next
+.open-next
+.worker-dist
 .wrangler
-worker-configuration.d.ts
+worker/env.generated.d.ts
+yarn.lock
