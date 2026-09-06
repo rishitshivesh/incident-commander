@@ -13,19 +13,16 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm types && tsc --noEmit",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "@cloudflare/ai-chat": "^0.9.3",
-    "@tabler/icons-react": "^3.35.0",
     "agents": "^0.17.4",
     "ai": "^6.0.197",
-    "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwind-merge": "^2.6.0",
     "workers-ai-provider": "^3.2.1",
     "zod": "^4.4.3"
   },
