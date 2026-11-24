@@ -1,3 +1,4 @@
+/* eslint-disable max-len -- vendored source with long generated lines */
 export function FileExtIcon({
   filename,
   className,

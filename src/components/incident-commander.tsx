@@ -43,7 +43,8 @@ export function IncidentCommander() {
     onError: useCallback((error: Event) => console.error("Agent connection error", error), [])
   });
 
-  const { messages, sendMessage, stop, status } = useAgentChat({ agent });
+  // History syncs over the WebSocket on connect; skipping the HTTP preload keeps SSR/build from calling the agent.
+  const { messages, sendMessage, stop, status } = useAgentChat({ agent, getInitialMessages: null });
   const state = agent.state as CommanderState | undefined;
 
   return (

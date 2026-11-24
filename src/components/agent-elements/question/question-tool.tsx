@@ -68,8 +68,6 @@ export function QuestionTool({ part }: QuestionToolProps) {
     setLocalIndex(part.input?.questionIndex ?? 1);
   }, [part.toolCallId]);
 
-  if (!question) return null;
-
   const outputAnswer = part.output?.answer;
   const answeredCount = Object.keys(localAnswers).length;
   const isComplete =
@@ -117,6 +115,8 @@ export function QuestionTool({ part }: QuestionToolProps) {
       setLocalIndex((prev) => Math.min(totalQuestions, prev + 1));
     }
   };
+
+  if (!question) return null;
 
   return (
     <div className="rounded-an-tool-border-radius border border-border bg-an-tool-background overflow-hidden">

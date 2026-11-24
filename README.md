@@ -73,3 +73,29 @@ IncidentCommanderAgent
 ```
 
 The initial telemetry provider is deterministic mock infrastructure so the demo remains repeatable. Real observability providers can replace that boundary later without changing the Agent or UI contracts.
+
+## Assignment requirements mapping
+
+| Requirement | Implementation |
+| --- | --- |
+| LLM | Llama 3.3 70B (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) on Workers AI, called from `worker/src/incident-agent.ts` |
+| Workflow / coordination | `IncidentInvestigationWorkflow` (Cloudflare Workflows) launched by the agent via `runWorkflow`; progress streams back through `onWorkflowProgress` |
+| User input | Chat UI (Next.js + Agent Elements) over a WebSocket via `useAgent` / `useAgentChat` |
+| Memory / state | Durable Object state (`CommanderState`) plus SQLite tables for incidents, service context and observations |
+
+Prompt history for AI-assisted coding is in [PROMPTS.md](./PROMPTS.md).
+
+## Deploying
+
+Workers AI needs a Cloudflare login, including for `yarn dev:agent` because the AI binding runs remotely. Run `npx wrangler login` first, or set `CLOUDFLARE_API_TOKEN`.
+
+```bash
+# 1. Deploy the agent Worker (Durable Object, Workflow, AI binding)
+yarn deploy:agent
+# 2. Point the web app at it, using the host only (no protocol), e.g. incident-commander-agent.<account>.workers.dev
+echo "NEXT_PUBLIC_AGENT_HOST=incident-commander-agent.<account>.workers.dev" > .env.local
+# 3. Deploy the web app
+yarn deploy:web
+```
+
+`NEXT_PUBLIC_AGENT_HOST` is read at build time. Without it the UI falls back to `<current hostname>:8787`, which only works locally.

@@ -13,7 +13,7 @@ type ServiceContextRow = {
 
 export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
   maxPersistedMessages = 120;
-  chatRecovery = true;
+  chatRecovery = true as const;
 
   initialState: CommanderState = {
     activeIncident: null,
@@ -21,9 +21,9 @@ export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
   };
 
   onStart() {
-    this.sql`CREATE TABLE IF NOT EXISTS incidents (id TEXT PRIMARY KEY, title TEXT NOT NULL, service TEXT NOT NULL, environment TEXT NOT NULL, severity TEXT NOT NULL, status TEXT NOT NULL, workflow_id TEXT, result TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`;
-    this.sql`CREATE TABLE IF NOT EXISTS service_context (service TEXT PRIMARY KEY, context TEXT NOT NULL, updated_at TEXT NOT NULL)`;
-    this.sql`CREATE TABLE IF NOT EXISTS observations (id INTEGER PRIMARY KEY AUTOINCREMENT, incident_id TEXT NOT NULL, category TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL)`;
+    void this.sql`CREATE TABLE IF NOT EXISTS incidents (id TEXT PRIMARY KEY, title TEXT NOT NULL, service TEXT NOT NULL, environment TEXT NOT NULL, severity TEXT NOT NULL, status TEXT NOT NULL, workflow_id TEXT, result TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`;
+    void this.sql`CREATE TABLE IF NOT EXISTS service_context (service TEXT PRIMARY KEY, context TEXT NOT NULL, updated_at TEXT NOT NULL)`;
+    void this.sql`CREATE TABLE IF NOT EXISTS observations (id INTEGER PRIMARY KEY AUTOINCREMENT, incident_id TEXT NOT NULL, category TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL)`;
   }
 
   private getServiceMemory() {
@@ -31,7 +31,7 @@ export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
   }
 
   private rememberObservation(incidentId: string, category: string, content: string) {
-    this.sql`INSERT INTO observations (incident_id, category, content, created_at) VALUES (${incidentId}, ${category}, ${content}, ${new Date().toISOString()})`;
+    void this.sql`INSERT INTO observations (incident_id, category, content, created_at) VALUES (${incidentId}, ${category}, ${content}, ${new Date().toISOString()})`;
   }
 
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
@@ -68,7 +68,7 @@ export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
           inputSchema: z.object({ service: z.string(), context: z.string() }),
           execute: async ({ service, context }) => {
             const updatedAt = new Date().toISOString();
-            this.sql`INSERT INTO service_context (service, context, updated_at) VALUES (${service}, ${context}, ${updatedAt}) ON CONFLICT(service) DO UPDATE SET context = excluded.context, updated_at = excluded.updated_at`;
+            void this.sql`INSERT INTO service_context (service, context, updated_at) VALUES (${service}, ${context}, ${updatedAt}) ON CONFLICT(service) DO UPDATE SET context = excluded.context, updated_at = excluded.updated_at`;
             return { stored: true, service, context };
           }
         }),
@@ -86,7 +86,7 @@ export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
             const createdAt = new Date().toISOString();
             const workflowId = await this.runWorkflow("INCIDENT_INVESTIGATION", { incidentId, service, environment, description });
 
-            this.sql`INSERT INTO incidents (id, title, service, environment, severity, status, workflow_id, created_at, updated_at) VALUES (${incidentId}, ${title}, ${service}, ${environment}, ${severity}, 'investigating', ${workflowId}, ${createdAt}, ${createdAt})`;
+            void this.sql`INSERT INTO incidents (id, title, service, environment, severity, status, workflow_id, created_at, updated_at) VALUES (${incidentId}, ${title}, ${service}, ${environment}, ${severity}, 'investigating', ${workflowId}, ${createdAt}, ${createdAt})`;
             this.rememberObservation(incidentId, "report", description);
             this.setState({
               activeIncident: { id: incidentId, title, service, environment, severity: severity as IncidentSeverity, status: "investigating", createdAt },
@@ -113,7 +113,7 @@ export class IncidentCommanderAgent extends AIChatAgent<Env, CommanderState> {
     const investigationResult = result as InvestigationResult | undefined;
     const updatedAt = new Date().toISOString();
     if (investigationResult) {
-      this.sql`UPDATE incidents SET status = 'open', result = ${JSON.stringify(investigationResult)}, updated_at = ${updatedAt} WHERE workflow_id = ${instanceId}`;
+      void this.sql`UPDATE incidents SET status = 'open', result = ${JSON.stringify(investigationResult)}, updated_at = ${updatedAt} WHERE workflow_id = ${instanceId}`;
       this.rememberObservation(investigationResult.incidentId, "root-cause", investigationResult.likelyCause);
     }
     if (this.state.investigation.workflowId === instanceId) {

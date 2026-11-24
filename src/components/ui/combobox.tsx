@@ -1,3 +1,4 @@
+/* eslint-disable max-len -- vendored source with long generated lines */
 "use client"
 
 import * as React from "react"
